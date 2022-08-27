@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-simple-recall",
+	"name": "Simple Recall Plugin",
 	"version": "1.0.1",
 	"minAppVersion": "0.12.0",
-	"description": "This is a sample plugin for Obsidian. This plugin demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
+	"description": "Plugin that simply displays notes that were recently modified.",
+	"author": "@ad2969",
+	"authorUrl": "https://github.com/ad2969/",
 	"isDesktopOnly": false
 }
