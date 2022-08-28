@@ -1,36 +1,23 @@
 import {
 	App,
-	ButtonComponent,
-	Editor,
-	MarkdownView,
-	Modal,
-	Notice,
 	Plugin,
 	PluginSettingTab,
 	Setting
 } from 'obsidian';
 
-interface FilePath {
-	path: string;
-	basename: string;
-}
-interface PluginSettings {
-	daysToTrack: number;
-	excludedPaths: string[];
-	recentFiles: FilePath[];
-	doLimitNumberOfFiles: boolean;
-	maximumNumberOfFiles: number;
-	doWatchVaultChange: boolean;
-}
+import {
+	PluginSettings,
+	DEFAULT_SETTINGS,
+} from "./settings";
 
-const DEFAULT_SETTINGS: PluginSettings = {
-	daysToTrack: 7,
-	excludedPaths: [],
-	recentFiles: [],
-	doLimitNumberOfFiles: false,
-	maximumNumberOfFiles: 10,
-	doWatchVaultChange: true,
-}
+import {
+	SIMPLE_RECALL_ICON,
+	SIMPLE_RECALL_TITLE,
+	SIMPLE_RECALL_VIEW_TYPE,
+	SimpleRecallView
+} from "./view";
+
+import { isPositiveInteger } from "./utils/isInteger";
 
 export default class SimpleRecallPlugin extends Plugin {
 	settings: PluginSettings;
@@ -38,13 +25,12 @@ export default class SimpleRecallPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		
-		// This creates an icon in the left ribbon.
-		// const ribbonIconEl = this.addRibbonIcon('dice', 'Sample Plugin', (evt: MouseEvent) => {
-		// 	// Called when the user clicks the icon.
-		// 	new Notice('This is a notice!');
-		// });
-		// // Perform additional things with the ribbon
-		// ribbonIconEl.addClass('my-plugin-ribbon-class');
+		const ribbonIconEl = this.addRibbonIcon(
+			SIMPLE_RECALL_ICON,
+			SIMPLE_RECALL_TITLE,
+			(evt: MouseEvent) => { this.activateView() }
+		);
+		ribbonIconEl.addClass('my-plugin-ribbon-class');
 		
 		// // This adds a simple command that can be triggered anywhere
 		// this.addCommand({
@@ -84,6 +70,11 @@ export default class SimpleRecallPlugin extends Plugin {
 		// });
 		
 		this.addSettingTab(new SimpleRecallSettingTab(this.app, this));
+
+		this.registerView(
+			SIMPLE_RECALL_VIEW_TYPE,
+			(leaf) => new SimpleRecallView(leaf, this.settings)
+		);
 		
 		// // If the plugin hooks up any global DOM events (on parts of the app that doesn't belong to this plugin)
 		// // Using this function will automatically remove the event listener when this plugin is disabled.
@@ -107,9 +98,22 @@ export default class SimpleRecallPlugin extends Plugin {
 	// 		this.app.vault.off("delete", this.handleVaultChange);
 	// 	}
 	// }
+
+	async activateView() {
+		this.app.workspace.detachLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
+	
+		await this.app.workspace.getRightLeaf(false).setViewState({
+			type: SIMPLE_RECALL_VIEW_TYPE,
+			active: true,
+		});
+	
+		this.app.workspace.revealLeaf(
+			this.app.workspace.getLeavesOfType(SIMPLE_RECALL_VIEW_TYPE)[0]
+		);
+	}
 	
 	onunload() {
-		
+		this.app.workspace.detachLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
 	}
 	
 	async loadSettings() {
@@ -173,35 +177,67 @@ export default class SimpleRecallPlugin extends Plugin {
 // 	}
 // }
 	
-	class SimpleRecallSettingTab extends PluginSettingTab {
-		plugin: SimpleRecallPlugin;
-		
-		constructor(app: App, plugin: SimpleRecallPlugin) {
-			super(app, plugin);
-			this.plugin = plugin;
-		}
-		
-		display(): void {
-			const {containerEl} = this;
-			
-			containerEl.empty();
-			
-			containerEl.createEl('h2', {text: 'Settings for my awesome plugin.'});
-			
-			new Setting(containerEl)
-			.setName('Tracking (days)')
-			.setDesc('Number of Days to Track')
-			.addSlider(numberComponent => numberComponent
-				.setValue(this.plugin.settings.daysToTrack)
-				.onChange(async (value) => {
-					this.plugin.settings.daysToTrack = value;
-					await this.plugin.saveSettings();
-				}));
-				
-			// new Setting(containerEl)
-			// 	.setName('Excluded Paths')
-			// 	.addButton(buttonComponent => buttonComponent
-			// 		.onClick(() => new ExcludedPathsSettingModal(this.app, this.plugin).open()))
-		}
+class SimpleRecallSettingTab extends PluginSettingTab {
+	plugin: SimpleRecallPlugin;
+	maxFilesSetting: Setting;
+	
+	constructor(app: App, plugin: SimpleRecallPlugin) {
+		super(app, plugin);
+		this.plugin = plugin;
 	}
+	
+	display(): void {
+		const { containerEl } = this;
+		
+		containerEl.empty();
+		containerEl.createEl('h2', { text: 'Simple Recall Settings.' });
+
+		// new Setting(containerEl)
+		// 	.setName('Watch for file changes?')
+		
+		new Setting(containerEl)
+			.setName('Tracking (days)')
+			.setDesc('Number of days to track')
+			.addText(numberComponent => numberComponent
+				.setValue(String(this.plugin.settings.daysToTrack))
+				.onChange(async (value) => {
+					if (!isPositiveInteger(value)) return;
+					this.plugin.settings.daysToTrack = Number(value);
+					await this.plugin.saveSettings();
+				})
+			);
 			
+		// new Setting(containerEl)
+		// 	.setName('Excluded Paths')
+		// 	.addButton(buttonComponent => buttonComponent
+		// 		.onClick(() => new ExcludedPathsSettingModal(this.app, this.plugin).open())
+		// 	);
+
+		new Setting(containerEl)
+			.setName('Limit Number of Files?')
+			.setDesc('Should the number of files be limited?')
+			.addToggle(toggleComponent => toggleComponent
+				.setValue(this.plugin.settings.doLimitNumberOfFiles)
+				.onChange(async (value) => {
+					this.plugin.settings.doLimitNumberOfFiles = value;
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
+		
+		this.maxFilesSetting = new Setting(containerEl)
+			.setName('Maximum Number of Files')
+			.setDesc('Total number of files to limit per recall')
+			.setDisabled(!this.plugin.settings.doLimitNumberOfFiles)
+			.setClass(this.plugin.settings.doLimitNumberOfFiles ? 'sub-text-1' : 'sub-text-1--disabled')
+			.addText(textComponent => textComponent
+				.setPlaceholder('Number of files')
+				.setValue(String(this.plugin.settings.maximumNumberOfFiles))
+				.onChange(async (value) => {
+					if (!isPositiveInteger(value)) return;
+					this.plugin.settings.maximumNumberOfFiles = Number(value);
+					await this.plugin.saveSettings();
+				})
+			);
+	}
+}

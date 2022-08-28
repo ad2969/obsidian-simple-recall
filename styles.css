@@ -1,4 +1,33 @@
-/* Sets all the text color to red! */
-body {
-    color: red;
+.sub-text-1 {
+    margin-left: 1em;
+}
+
+.sub-text-1--disabled {
+    margin-left: 1em;
+    opacity: 50%;
+}
+
+.padded-container {
+    padding: 20px;
+}
+
+.y-scroll {
+    overflow-y: scroll;
+}
+
+.small-divider {
+    margin: 10px 0;
+}
+
+.mt-0 {
+    margin-top: 0;
+}
+
+.t--clickable {
+    color: darkblue;
+    text-decoration: underline;
+    cursor: pointer;
+}
+.t--clickable:hover {
+    color: grey;
 }
