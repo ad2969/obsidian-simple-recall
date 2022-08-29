@@ -44,19 +44,6 @@ export default class SimpleRecallPlugin extends Plugin {
 		);
 	}
 
-	// handleVaultChange(file: any) {
-	// }
-
-	// registerVaultWatchers() {
-	// 	if (this.settings.doWatchVaultChange) {
-	// 		this.registerEvent(this.app.vault.on("modify", this.handleVaultChange));
-	// 		this.registerEvent(this.app.vault.on("delete", this.handleVaultChange));
-	// 	} else {
-	// 		this.app.vault.off("modify", this.handleVaultChange);
-	// 		this.app.vault.off("delete", this.handleVaultChange);
-	// 	}
-	// }
-
 	async activateView() {
 		this.app.workspace.detachLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
 	
@@ -149,9 +136,6 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 		
 		containerEl.empty();
 		containerEl.createEl('h2', { text: 'Simple Recall Settings.' });
-
-		// new Setting(containerEl)
-		// 	.setName('Watch for file changes?')
 		
 		new Setting(containerEl)
 			.setName('Tracking (days)')
