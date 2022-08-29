@@ -7,16 +7,17 @@ import {
 
 import {
     PluginSettings,
+    SORT_ORDER_SETTINGS,
 } from "./settings";
 
-export const SIMPLE_RECALL_ICON = "clock"
-export const SIMPLE_RECALL_TITLE = "Simple Recall"
-export const SIMPLE_RECALL_VIEW_TYPE = "SIMPLE_RECALL"
+export const SIMPLE_RECALL_ICON = "clock";
+export const SIMPLE_RECALL_TITLE = "Simple Recall";
+export const SIMPLE_RECALL_VIEW_TYPE = "SIMPLE_RECALL";
 
 interface FileGroups {
     [name: string]: {
         dateString: string;
-        files: TFile[]
+        files: TFile[];
     };
 }
 
@@ -24,12 +25,18 @@ export class SimpleRecallView extends ItemView {
     listContainer: HTMLElement;
     settings: PluginSettings;
 
+    sortOrder: string;
+    isReverseSort: boolean;
+    rSortButton: ExtraButtonComponent;
+
     constructor(
         leaf: WorkspaceLeaf,
         settings: PluginSettings,
     ) {
         super(leaf);
         this.settings = settings;
+        this.sortOrder = settings.sortOrder;
+        this.isReverseSort = false;
     }
 
     getViewType(): string {
@@ -37,11 +44,19 @@ export class SimpleRecallView extends ItemView {
     }
 
     getDisplayText(): string {
-        return "Simple Recall"
+        return "Simple Recall";
     }
 
     getIcon(): string {
-        return SIMPLE_RECALL_ICON
+        return SIMPLE_RECALL_ICON;
+    }
+
+    toggleSortOrder(): void {
+        this.rSortButton.extraSettingsEl.toggleClass('is-active', !this.isReverseSort);
+        this.isReverseSort = !this.isReverseSort;
+        if (this.sortOrder === SORT_ORDER_SETTINGS[0].key) this.sortOrder = SORT_ORDER_SETTINGS[1].key;
+        else this.sortOrder = SORT_ORDER_SETTINGS[0].key;
+        this.renderRecallList();
     }
 
     onOpen(): Promise<void> {
@@ -54,19 +69,27 @@ export class SimpleRecallView extends ItemView {
         const navContainer = containerEl.createEl('div', { cls: 'nav-header' });
         const navButtonsContainer = navContainer.createEl('div', { cls: 'nav-buttons-container' });
 
-        // nav header
+        // NAV HEADER
+        // refresh button
         const refreshButton = new ExtraButtonComponent(navButtonsContainer);
         refreshButton.setIcon('reset');
         refreshButton.onClick(() => { this.renderRecallList() });
-        // refreshButton.extraSettingsEl.className = 'nav-action-button';
         refreshButton.extraSettingsEl.addClasses(['nav-action-button', 'icon-button']);
         refreshButton.setTooltip('Refresh recall list');
 
-        // scroll container
+        // reverse sort button
+        this.rSortButton = new ExtraButtonComponent(navButtonsContainer);
+        this.rSortButton.setIcon('switch');
+        this.rSortButton.onClick(() => { this.toggleSortOrder() });
+        this.rSortButton.extraSettingsEl.addClasses(['nav-action-button', 'icon-button']);
+        this.rSortButton.setTooltip('Reverse sort order');
+
+        // SCROLL CONTAINER
         const scrollPane = containerEl.createEl('div', { cls: 'scroll-pane horizontal-padding' });
 		scrollPane.createEl('h4', { text: SIMPLE_RECALL_TITLE, cls: 'mt-0 mb-0' });
         this.listContainer = scrollPane.createDiv();
 
+        // RENDER
         this.renderRecallList();
         return Promise.resolve();
     }
@@ -85,7 +108,10 @@ export class SimpleRecallView extends ItemView {
             .filter((file) => file.stat.mtime >= startDate.getTime());
 
         // sort files
-        recentlyEditedFiles.sort((a, b) => (a.stat.mtime < b.stat.mtime ? 1 : -1));
+        recentlyEditedFiles.sort((a, b) => this.sortOrder === SORT_ORDER_SETTINGS[0].key
+            ? (a.stat.mtime < b.stat.mtime ? 1 : -1)
+            : (a.stat.mtime > b.stat.mtime ? 1 : -1)
+        );
 
         // limit number of files
         if (this.settings.doLimitNumberOfFiles) {
@@ -125,6 +151,6 @@ export class SimpleRecallView extends ItemView {
     }
 
     onClose(): Promise<void> {
-        return Promise.resolve()
+        return Promise.resolve();
     }
 }

@@ -8,6 +8,7 @@ import {
 import {
 	PluginSettings,
 	DEFAULT_SETTINGS,
+	SORT_ORDER_SETTINGS,
 } from "./settings";
 
 import {
@@ -193,6 +194,20 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					if (!isPositiveInteger(value)) return;
 					this.plugin.settings.maximumNumberOfFiles = Number(value);
+					await this.plugin.saveSettings();
+				})
+			);
+		
+		new Setting(containerEl)
+			.setName('Sort Order')
+			.setDesc('Determine the order to sort pages')
+			.addDropdown(dropdownComponent => dropdownComponent
+				.addOption(SORT_ORDER_SETTINGS[0].key, SORT_ORDER_SETTINGS[0].desc)
+				.addOption(SORT_ORDER_SETTINGS[1].key, SORT_ORDER_SETTINGS[1].desc)
+				.setValue(this.plugin.settings.sortOrder)
+				.onChange(async (value) => {
+					console.log({ value })
+					this.plugin.settings.sortOrder = value;
 					await this.plugin.saveSettings();
 				})
 			);

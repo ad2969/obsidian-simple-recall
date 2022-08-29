@@ -1,7 +1,7 @@
 ### Things to do
 
-- [ ] Create menu button for refreshing
-- [ ] Create menu button to reverse the sort
+- [x] Create menu button for refreshing
+- [x] Create menu button to reverse the sort
 - [ ] Create setting item for choosing grouping options (dropdown)
 - [ ] Organize css better
 - [ ] Remove unnecessary commented functionality

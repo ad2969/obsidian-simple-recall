@@ -3,6 +3,17 @@ interface FilePath {
 	basename: string;
 }
 
+export const SORT_ORDER_SETTINGS = [
+    {
+        key: 'NEW_TO_OLD',
+        desc: 'Sort by date from newer to older',
+    },
+    {
+        key: 'OLD_TO_NEW',
+        desc: 'Sort by date from older to newer',
+    },
+]
+
 export interface PluginSettings {
 	// doWatchVaultChange: boolean;
 	daysToTrack: number;
@@ -10,7 +21,7 @@ export interface PluginSettings {
 	recentFiles: FilePath[];
 	doLimitNumberOfFiles: boolean;
 	maximumNumberOfFiles: number;
-    sortFromNewToOld: boolean;
+    sortOrder: string;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -20,5 +31,5 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	recentFiles: [],
 	doLimitNumberOfFiles: false,
 	maximumNumberOfFiles: 10,
-    sortFromNewToOld: true,
+    sortOrder: SORT_ORDER_SETTINGS[0].key,
 }
