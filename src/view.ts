@@ -89,9 +89,15 @@ export class SimpleRecallView extends ItemView {
         Object.values(fileGroups).map((group) => {
             this.listContainer.createEl('b', { text: group.dateString });
             group.files.map((file: TFile) => {
-                this.listContainer.createEl('li', { text: file.name, cls: 't--clickable' }).onClickEvent(() => {
+                this.listContainer.createEl('li', { text: file.name, cls: 't--clickable' }).onClickEvent((e) => {
                     // this.app.workspace.activeLeaf.openFile(file);
-                    const newLeaf = this.app.workspace.createLeafBySplit(this.app.workspace.getLeaf());
+                    // const newLeaf = this.app.workspace.createLeafBySplit(this.app.workspace.getLeaf());
+                    // const newLeaf = this.app.workspace.createLeafInParent(this.app.workspace.splitLeafOrActive(), 0);
+                    let newLeaf = this.app.workspace.getLeaf();
+
+                    if (e.ctrlKey || e.metaKey) {
+                        newLeaf = this.app.workspace.createLeafBySplit(newLeaf);
+                    }
                     newLeaf.openFile(file);
                 })
             });
