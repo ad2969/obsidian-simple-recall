@@ -10,6 +10,7 @@ export interface PluginSettings {
 	recentFiles: FilePath[];
 	doLimitNumberOfFiles: boolean;
 	maximumNumberOfFiles: number;
+    sortFromNewToOld: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -19,4 +20,5 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	recentFiles: [],
 	doLimitNumberOfFiles: false,
 	maximumNumberOfFiles: 10,
+    sortFromNewToOld: true,
 }

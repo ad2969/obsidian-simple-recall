@@ -1,4 +1,5 @@
 import {
+    ExtraButtonComponent,
     ItemView,
     TFile,
     WorkspaceLeaf,
@@ -23,7 +24,10 @@ export class SimpleRecallView extends ItemView {
     listContainer: HTMLElement;
     settings: PluginSettings;
 
-    constructor(leaf: WorkspaceLeaf, settings: PluginSettings) {
+    constructor(
+        leaf: WorkspaceLeaf,
+        settings: PluginSettings,
+    ) {
         super(leaf);
         this.settings = settings;
     }
@@ -44,16 +48,31 @@ export class SimpleRecallView extends ItemView {
 		const { containerEl } = this;
 		
 		containerEl.empty();
-        containerEl.addClasses(['padded-container', 'y-scroll']);
-		containerEl.createEl('h4', { text: 'Simple Recall' }).addClass('mt-0');
+        
+        containerEl.addClasses(['view-content']);
 
-        this.listContainer = containerEl.createDiv();
+        const navContainer = containerEl.createEl('div', { cls: 'nav-header' });
+        const navButtonsContainer = navContainer.createEl('div', { cls: 'nav-buttons-container' });
+
+        // nav header
+        const refreshButton = new ExtraButtonComponent(navButtonsContainer);
+        refreshButton.setIcon('reset');
+        refreshButton.onClick(() => { this.renderRecallList() });
+        // refreshButton.extraSettingsEl.className = 'nav-action-button';
+        refreshButton.extraSettingsEl.addClasses(['nav-action-button', 'icon-button']);
+        refreshButton.setTooltip('Refresh recall list');
+
+        // scroll container
+        const scrollPane = containerEl.createEl('div', { cls: 'scroll-pane horizontal-padding' });
+		scrollPane.createEl('h4', { text: SIMPLE_RECALL_TITLE, cls: 'mt-0 mb-0' });
+        this.listContainer = scrollPane.createDiv();
 
         this.renderRecallList();
         return Promise.resolve();
     }
 
     renderRecallList(): void {
+        // re-render if already exists
         if (this.listContainer) this.listContainer.empty();
         
         const startDate = new Date();
@@ -87,6 +106,7 @@ export class SimpleRecallView extends ItemView {
         }, {});
 
         Object.values(fileGroups).map((group) => {
+            this.listContainer.createEl('hr', { cls: 'vertical-padding' });
             this.listContainer.createEl('b', { text: group.dateString });
             group.files.map((file: TFile) => {
                 this.listContainer.createEl('li', { text: file.name, cls: 't--clickable' }).onClickEvent((e) => {
@@ -101,7 +121,6 @@ export class SimpleRecallView extends ItemView {
                     newLeaf.openFile(file);
                 })
             });
-            this.listContainer.createEl('hr', { cls: 'small-divider' });
         });
     }
 

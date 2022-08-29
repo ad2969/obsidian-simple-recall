@@ -36,7 +36,10 @@ export default class SimpleRecallPlugin extends Plugin {
 
 		this.registerView(
 			SIMPLE_RECALL_VIEW_TYPE,
-			(leaf) => new SimpleRecallView(leaf, this.settings)
+			(leaf) => new SimpleRecallView(
+				leaf,
+				this.settings,
+			)
 		);
 	}
 
