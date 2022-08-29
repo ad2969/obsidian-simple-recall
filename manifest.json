@@ -1,10 +1,10 @@
 {
 	"id": "obsidian-simple-recall",
-	"name": "Simple Recall Plugin",
+	"name": "Simple Recall",
 	"version": "1.0.1",
 	"minAppVersion": "0.12.0",
 	"description": "Plugin that simply displays notes that were recently modified.",
 	"author": "@ad2969",
 	"authorUrl": "https://github.com/ad2969/",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }
