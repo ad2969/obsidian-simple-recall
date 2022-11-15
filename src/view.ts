@@ -120,7 +120,7 @@ export class SimpleRecallView extends ItemView {
 
         // group files
         const fileGroups = recentlyEditedFiles.reduce((groups: FileGroups, file: TFile) => {
-            const date = new Date(file.stat.ctime).setHours(0, 0, 0, 0);
+            const date = new Date(file.stat.mtime).setHours(0, 0, 0, 0);
             if (!groups[date]) {
                 groups[date] = {
                     dateString: new Date(date).toDateString(),
