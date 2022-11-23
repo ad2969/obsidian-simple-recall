@@ -11,7 +11,8 @@
 }
 
 .horizontal-padding {
-    margin: 0 10px;
+    margin: 10px;
+    margin-top: 0;
 }
 
 .mt-0 {
