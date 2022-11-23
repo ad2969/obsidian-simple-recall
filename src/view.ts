@@ -105,7 +105,6 @@ export class SimpleRecallView extends ItemView implements SimpleRecallViewInterf
     }
 
     renderRecallList(): void {
-        console.log("RERENDERING")
         // re-render if already exists
         if (this.listContainer) this.listContainer.empty();
         
