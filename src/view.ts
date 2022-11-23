@@ -154,7 +154,9 @@ export class SimpleRecallView extends ItemView implements SimpleRecallViewInterf
                     let newLeaf = this.app.workspace.getLeaf();
 
                     if (e.ctrlKey || e.metaKey) {
-                        newLeaf = this.app.workspace.createLeafBySplit(newLeaf);
+                        // newLeaf = this.app.workspace.createLeafBySplit(newLeaf);
+                        // create new leaf in root split (https://marcus.se.net/obsidian-plugin-docs/user-interface/workspace#leaf-lifecycle)
+                        newLeaf = this.app.workspace.getLeaf(true);
                     }
                     newLeaf.openFile(file);
                 })
