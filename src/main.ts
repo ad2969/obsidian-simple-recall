@@ -8,20 +8,22 @@ import {
 import {
 	PluginSettings,
 	DEFAULT_SETTINGS,
-	SORT_ORDER_SETTINGS,
+	SORT_ORDER_SETTINGS_OPTIONS,
 } from "./settings";
 
 import {
 	SIMPLE_RECALL_ICON,
 	SIMPLE_RECALL_TITLE,
 	SIMPLE_RECALL_VIEW_TYPE,
-	SimpleRecallView
+	SimpleRecallView,
+	SimpleRecallViewInterface,
 } from "./view";
 
 import { isPositiveInteger } from "./utils/isInteger";
 
 export default class SimpleRecallPlugin extends Plugin {
 	settings: PluginSettings;
+	leafId: string;
 	
 	async onload() {
 		await this.loadSettings();
@@ -31,7 +33,7 @@ export default class SimpleRecallPlugin extends Plugin {
 			SIMPLE_RECALL_TITLE,
 			(evt: MouseEvent) => { this.activateView() }
 		);
-		ribbonIconEl.addClass('my-plugin-ribbon-class');
+		ribbonIconEl.addClass('simple-recall-plugin-ribbon-class');
 		
 		this.addSettingTab(new SimpleRecallSettingTab(this.app, this));
 
@@ -42,12 +44,19 @@ export default class SimpleRecallPlugin extends Plugin {
 				this.settings,
 			)
 		);
+
+		this.app.workspace.on("editor-change", () => {
+			if (this.settings.doReloadOnFileChange) {
+				this.refreshSimpleRecallView();
+			}
+		})
 	}
 
 	async activateView() {
 		this.app.workspace.detachLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
 	
-		await this.app.workspace.getRightLeaf(false).setViewState({
+		const chosenLeaf = await this.app.workspace.getRightLeaf(false);
+		await chosenLeaf.setViewState({
 			type: SIMPLE_RECALL_VIEW_TYPE,
 			active: true,
 		});
@@ -67,6 +76,17 @@ export default class SimpleRecallPlugin extends Plugin {
 	
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.refreshSimpleRecallView();
+	}
+
+	refreshSimpleRecallView() {
+		const currViews = this.app.workspace.getLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
+		const currLeaf = currViews.length ? currViews[0].view : false;
+		
+		if (currLeaf) {
+			(currLeaf as SimpleRecallViewInterface).loadSettings(this.settings);
+			(currLeaf as SimpleRecallViewInterface).renderRecallList();
+		}
 	}
 }
 
@@ -186,13 +206,24 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 			.setName('Sort Order')
 			.setDesc('Determine the order to sort pages')
 			.addDropdown(dropdownComponent => dropdownComponent
-				.addOption(SORT_ORDER_SETTINGS[0].key, SORT_ORDER_SETTINGS[0].desc)
-				.addOption(SORT_ORDER_SETTINGS[1].key, SORT_ORDER_SETTINGS[1].desc)
+				.addOption(SORT_ORDER_SETTINGS_OPTIONS[0].key, SORT_ORDER_SETTINGS_OPTIONS[0].desc)
+				.addOption(SORT_ORDER_SETTINGS_OPTIONS[1].key, SORT_ORDER_SETTINGS_OPTIONS[1].desc)
 				.setValue(this.plugin.settings.sortOrder)
 				.onChange(async (value) => {
-					console.log({ value })
 					this.plugin.settings.sortOrder = value;
 					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('[WARNING - EXPERIMENTAL] Reload on File Change')
+			.setDesc('Automatically reload simple recall list on every file change')
+			.addToggle(toggleComponent => toggleComponent
+				.setValue(this.plugin.settings.doReloadOnFileChange)
+				.onChange(async (value) => {
+					this.plugin.settings.doReloadOnFileChange = value;
+					await this.plugin.saveSettings();
+					this.display();
 				})
 			);
 	}

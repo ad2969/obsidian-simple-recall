@@ -7,7 +7,7 @@ import {
 
 import {
     PluginSettings,
-    SORT_ORDER_SETTINGS,
+    SORT_ORDER_SETTINGS_OPTIONS,
 } from "./settings";
 
 export const SIMPLE_RECALL_ICON = "clock";
@@ -21,7 +21,19 @@ interface FileGroups {
     };
 }
 
-export class SimpleRecallView extends ItemView {
+export interface SimpleRecallViewInterface extends ItemView {
+    listContainer: HTMLElement;
+    settings: PluginSettings;
+    sortOrder: string;
+    isReverseSort: boolean;
+    rSortButton: ExtraButtonComponent;
+
+    toggleSortOrder(): void;
+    renderRecallList(): void;
+    loadSettings(newSettings: PluginSettings): void;
+}
+
+export class SimpleRecallView extends ItemView implements SimpleRecallViewInterface {
     listContainer: HTMLElement;
     settings: PluginSettings;
 
@@ -54,8 +66,6 @@ export class SimpleRecallView extends ItemView {
     toggleSortOrder(): void {
         this.rSortButton.extraSettingsEl.toggleClass('is-active', !this.isReverseSort);
         this.isReverseSort = !this.isReverseSort;
-        if (this.sortOrder === SORT_ORDER_SETTINGS[0].key) this.sortOrder = SORT_ORDER_SETTINGS[1].key;
-        else this.sortOrder = SORT_ORDER_SETTINGS[0].key;
         this.renderRecallList();
     }
 
@@ -95,6 +105,7 @@ export class SimpleRecallView extends ItemView {
     }
 
     renderRecallList(): void {
+        console.log("RERENDERING")
         // re-render if already exists
         if (this.listContainer) this.listContainer.empty();
         
@@ -108,7 +119,9 @@ export class SimpleRecallView extends ItemView {
             .filter((file) => file.stat.mtime >= startDate.getTime());
 
         // sort files
-        recentlyEditedFiles.sort((a, b) => this.sortOrder === SORT_ORDER_SETTINGS[0].key
+        let doSortAsc = this.sortOrder === SORT_ORDER_SETTINGS_OPTIONS[0].key;
+        if (this.isReverseSort) doSortAsc = !doSortAsc;
+        recentlyEditedFiles.sort((a, b) => doSortAsc
             ? (a.stat.mtime < b.stat.mtime ? 1 : -1)
             : (a.stat.mtime > b.stat.mtime ? 1 : -1)
         );
@@ -142,12 +155,19 @@ export class SimpleRecallView extends ItemView {
                     let newLeaf = this.app.workspace.getLeaf();
 
                     if (e.ctrlKey || e.metaKey) {
-                        newLeaf = this.app.workspace.createLeafBySplit(newLeaf);
+                        // newLeaf = this.app.workspace.createLeafBySplit(newLeaf);
+                        // create new leaf in root split (https://marcus.se.net/obsidian-plugin-docs/user-interface/workspace#leaf-lifecycle)
+                        newLeaf = this.app.workspace.getLeaf(true);
                     }
                     newLeaf.openFile(file);
                 })
             });
         });
+    }
+    
+    loadSettings(newSettings: PluginSettings): void {
+        this.settings = newSettings;
+        this.sortOrder = newSettings.sortOrder;
     }
 
     onClose(): Promise<void> {
