@@ -22,6 +22,7 @@ export interface PluginSettings {
 	doLimitNumberOfFiles: boolean;
 	maximumNumberOfFiles: number;
     sortOrder: string;
+	doReloadOnFileChange: boolean;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -32,4 +33,5 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	doLimitNumberOfFiles: false,
 	maximumNumberOfFiles: 10,
     sortOrder: SORT_ORDER_SETTINGS_OPTIONS[0].key,
+	doReloadOnFileChange: false,
 }

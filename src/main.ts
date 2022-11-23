@@ -44,6 +44,12 @@ export default class SimpleRecallPlugin extends Plugin {
 				this.settings,
 			)
 		);
+
+		this.app.workspace.on("editor-change", () => {
+			if (this.settings.doReloadOnFileChange) {
+				this.refreshSimpleRecallView();
+			}
+		})
 	}
 
 	async activateView() {
@@ -70,6 +76,10 @@ export default class SimpleRecallPlugin extends Plugin {
 	
 	async saveSettings() {
 		await this.saveData(this.settings);
+		this.refreshSimpleRecallView();
+	}
+
+	refreshSimpleRecallView() {
 		const currViews = this.app.workspace.getLeavesOfType(SIMPLE_RECALL_VIEW_TYPE);
 		const currLeaf = currViews.length ? currViews[0].view : false;
 		
@@ -202,6 +212,18 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 				.onChange(async (value) => {
 					this.plugin.settings.sortOrder = value;
 					await this.plugin.saveSettings();
+				})
+			);
+
+		new Setting(containerEl)
+			.setName('[WARNING - EXPERIMENTAL] Reload on File Change')
+			.setDesc('Automatically reload simple recall list on every file change')
+			.addToggle(toggleComponent => toggleComponent
+				.setValue(this.plugin.settings.doReloadOnFileChange)
+				.onChange(async (value) => {
+					this.plugin.settings.doReloadOnFileChange = value;
+					await this.plugin.saveSettings();
+					this.display();
 				})
 			);
 	}
