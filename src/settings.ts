@@ -3,7 +3,7 @@ interface FilePath {
 	basename: string;
 }
 
-export const SORT_ORDER_SETTINGS = [
+export const SORT_ORDER_SETTINGS_OPTIONS = [
     {
         key: 'NEW_TO_OLD',
         desc: 'Sort by date from newer to older',
@@ -31,5 +31,5 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	recentFiles: [],
 	doLimitNumberOfFiles: false,
 	maximumNumberOfFiles: 10,
-    sortOrder: SORT_ORDER_SETTINGS[0].key,
+    sortOrder: SORT_ORDER_SETTINGS_OPTIONS[0].key,
 }
