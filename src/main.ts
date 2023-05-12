@@ -1,5 +1,7 @@
 import {
 	App,
+	Editor,
+	MarkdownView,
 	Plugin,
 	PluginSettingTab,
 	Setting
@@ -18,6 +20,7 @@ import {
 	SimpleRecallView,
 	SimpleRecallViewInterface,
 } from "./view";
+import { ExportModal } from './modal';
 
 import { isPositiveInteger } from "./utils/isInteger";
 
@@ -36,6 +39,49 @@ export default class SimpleRecallPlugin extends Plugin {
 		ribbonIconEl.addClass('simple-recall-plugin-ribbon-class');
 		
 		this.addSettingTab(new SimpleRecallSettingTab(this.app, this));
+
+		this.addCommand({
+			id: "export-current-file-to-anki",
+			name: "Export Current File to Anki",
+			editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
+				if (this.settings.enableAddToAnki && view.data.length > 0) {
+					if (!checking) {
+						new ExportModal(
+							this.app,
+							view.data,
+							this.settings.openAiApiKey,
+							this.settings.ankiConnectPort,
+							this.settings.ankiDestinationDeck,
+							5,
+						).open();
+					}
+					return true
+				}
+				return false;
+			},
+		});
+
+		this.addCommand({
+			id: "export-text-selection-to-anki",
+			name: "Export Current Text Selection to Anki",
+			editorCheckCallback: (checking: boolean, editor: Editor, view: MarkdownView) => {
+				const currTextSelection = editor.getSelection();
+				if (this.settings.enableAddToAnki && currTextSelection.length > 0) {
+					if (!checking) {
+						new ExportModal(
+							this.app,
+							currTextSelection,
+							this.settings.openAiApiKey,
+							this.settings.ankiConnectPort,
+							this.settings.ankiDestinationDeck,
+							2,
+						).open();
+					}
+					return true;
+				}
+				return false;
+			},
+		});
 
 		this.registerView(
 			SIMPLE_RECALL_VIEW_TYPE,
@@ -225,6 +271,74 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 					this.plugin.settings.doReloadOnFileChange = value;
 					await this.plugin.saveSettings();
 					this.display();
+				})
+			);
+		
+		const ankiDescription = new DocumentFragment();
+		const ankiDescHtml = document.createElement('p');
+		ankiDescHtml.innerHTML = '<a href="https://apps.ankiweb.net/">Anki</a> is an open-source flashcard program that is popular for spaced repetition. This feature requires <a href="https://foosoft.net/projects/anki-connect/">Anki Connect</a> to be installed alongside the main Anki program.\nEnabling this will add the command to automatically generate Question-Answer-style flashcards into the Anki system using OpenAI\'s AI models.';
+		ankiDescription.appendChild(ankiDescHtml);
+
+		new Setting(containerEl)
+			.setName('Enable Adding to Anki using GPT?')
+			// .setDesc('<p><a href="https://apps.ankiweb.net/">Anki</a> is an open-source flashcard program that is popular for spaced repetition. This feature requires <a href="https://foosoft.net/projects/anki-connect/">Anki Connect</a> to be installed alongside the main Anki program.\nEnabling this will add the command to automatically generate Question-Answer-style flashcards into the Anki system using OpenAI\'s AI models.</p>')
+			.setDesc(ankiDescription)
+			.addToggle(toggleComponent => toggleComponent
+				.setValue(this.plugin.settings.enableAddToAnki)
+				.onChange(async (value) => {
+					this.plugin.settings.enableAddToAnki = value;
+					await this.plugin.saveSettings();
+					this.display();
+				})
+			);
+		
+		new Setting(containerEl)
+			.setName('Anki Port')
+			.setDesc('The port number used to host Anki Connect')
+			.setDisabled(!this.plugin.settings.enableAddToAnki)
+			.setClass(this.plugin.settings.enableAddToAnki ? 'sub-text-1' : 'sub-text-1--disabled')
+			.addText(textComponent => textComponent
+				.setPlaceholder('Anki Connect Default: 8765')
+				.setValue(String(this.plugin.settings.ankiConnectPort))
+				.setDisabled(!this.plugin.settings.enableAddToAnki)
+				.onChange(async (value) => {
+					this.plugin.settings.ankiConnectPort = Number(value);
+					await this.plugin.saveSettings();
+				})
+			);
+		
+		new Setting(containerEl)
+			.setName('Anki Deck Name')
+			.setDesc('The name of the deck in Anki you want to export flashcards to')
+			.setDisabled(!this.plugin.settings.enableAddToAnki)
+			.setClass(this.plugin.settings.enableAddToAnki ? 'sub-text-1' : 'sub-text-1--disabled')
+			.addText(textComponent => textComponent
+				.setPlaceholder('Default')
+				.setValue(String(this.plugin.settings.ankiDestinationDeck))
+				.setDisabled(!this.plugin.settings.enableAddToAnki)
+				.onChange(async (value) => {
+					this.plugin.settings.ankiDestinationDeck = value;
+					await this.plugin.saveSettings();
+				})
+			);
+		
+		const openAiDescription = new DocumentFragment();
+		const openAiDescHtml = document.createElement('p');
+		openAiDescHtml.innerHTML = 'The API Key associated with your OpenAI account, used for querying GPT. Go <a href="https://platform.openai.com/account/api-keys">here</a> to obtain one.';
+		openAiDescription.appendChild(openAiDescHtml);
+
+		new Setting(containerEl)
+			.setName('OpenAI API Key')
+			.setDesc(openAiDescription)
+			.setDisabled(!this.plugin.settings.enableAddToAnki)
+			.setClass(this.plugin.settings.enableAddToAnki ? 'sub-text-1' : 'sub-text-1--disabled')
+			.addText(textComponent => textComponent
+				.setPlaceholder('')
+				.setValue(String(this.plugin.settings.openAiApiKey))
+				.setDisabled(!this.plugin.settings.enableAddToAnki)
+				.onChange(async (value) => {
+					this.plugin.settings.openAiApiKey = value;
+					await this.plugin.saveSettings();
 				})
 			);
 	}

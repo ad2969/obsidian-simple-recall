@@ -23,6 +23,10 @@ export interface PluginSettings {
 	maximumNumberOfFiles: number;
     sortOrder: string;
 	doReloadOnFileChange: boolean;
+	enableAddToAnki: boolean;
+	ankiConnectPort: number;
+	ankiDestinationDeck: string;
+	openAiApiKey: string;
 }
 
 export const DEFAULT_SETTINGS: PluginSettings = {
@@ -34,4 +38,8 @@ export const DEFAULT_SETTINGS: PluginSettings = {
 	maximumNumberOfFiles: 10,
     sortOrder: SORT_ORDER_SETTINGS_OPTIONS[0].key,
 	doReloadOnFileChange: false,
+	enableAddToAnki: false,
+	ankiConnectPort: 8765,
+	ankiDestinationDeck: '',
+	openAiApiKey: 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
 }
