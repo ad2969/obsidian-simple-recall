@@ -195,6 +195,7 @@ class SimpleRecallSettingTab extends PluginSettingTab {
 			.addText(textComponent => textComponent
 				.setPlaceholder('Number of files')
 				.setValue(String(this.plugin.settings.maximumNumberOfFiles))
+				.setDisabled(!this.plugin.settings.doLimitNumberOfFiles)
 				.onChange(async (value) => {
 					if (!isPositiveInteger(value)) return;
 					this.plugin.settings.maximumNumberOfFiles = Number(value);
