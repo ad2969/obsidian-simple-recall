@@ -1,4 +1,7 @@
-### Things to do
+# FUTURE DEVELOPMENT
+The plugin isn't really meant to do a lot, so it should be kept lightweight
+
+### Potential Features
 
 - [x] Create menu button for refreshing
 - [x] Create menu button to reverse the sort
