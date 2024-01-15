@@ -43,12 +43,12 @@
 
 /* TYPOGRAPHY */
 .t--clickable {
-    color: darkblue;
+    color: var(--link-color);
     text-decoration: underline;
     cursor: pointer;
 }
 .t--clickable:hover {
-    color: grey;
+    color: var(--link-color-hover);
 }
 
 /* COMPONENTS & BUTTONS */
